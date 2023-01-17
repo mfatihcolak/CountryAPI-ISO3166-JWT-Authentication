@@ -3,12 +3,15 @@ using CountryAPI.Models.Country;
 using CountryAPI.Models.ResponseModels;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CountryAPI.Controllers
 {
-    [BearerAuthorize]
-    [RoleAuthorization("Admin")]
+    /// <summary>
+    /// Everything about country
+    /// </summary>
+    //[BearerAuthorize]
+    //[RoleAuthorization("Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class CountryController : ControllerBase
@@ -16,10 +19,16 @@ namespace CountryAPI.Controllers
         /// <summary>
         /// List of All Countries With Specific Language
         /// </summary>
-        /// <param name="language"></param>
-        /// <returns>Return ISO3166 Countries</returns>
-        [HttpGet("GetAllCountries")]
-        public async Task<IActionResult> GetAllCountry([FromQuery] string language)
+        /// <param name="languageCode">Language code to get all countries</param>
+        /// <response code="200">successful operation</response>
+        /// <response code="404">Not supported language</response>
+        [HttpGet("countries/{languageCode}")]
+        //[Route("countries/{languageCode}")]
+        [SwaggerOperation("GetAllCountry")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200,type: typeof(CountryModel), description: "Successful operation")]
+        [SwaggerResponse(statusCode: 404,type: typeof(ErrorResponse), description: "Notfound")]
+        public async Task<IActionResult> GetAllCountry([FromRoute] string languageCode)
         {
             using var client = new HttpClient();
             const string url = "https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/countries%2Bstates%2Bcities.json";
@@ -28,10 +37,10 @@ namespace CountryAPI.Controllers
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
             var json = JArray.Parse(responseBody);
-            var languageList = json.Select(data => (string)data["translations"][$"{language}"]);
+            var languageList = json.Select(data => (string)data["translations"][$"{languageCode}"]);
 
 
-            if (language == "en")
+            if (languageCode == "en")
             {
                 var countriesList = new CountryModel
                 {
@@ -43,7 +52,7 @@ namespace CountryAPI.Controllers
             {
                 var countriesList = new CountryModel
                 {
-                    Countries = json.Select(data => (string)data["translations"][$"{language}"]).ToList()
+                    Countries = json.Select(data => (string)data["translations"][$"{languageCode}"]).ToList()
                 };
                 return Ok(countriesList);
             }
@@ -56,10 +65,16 @@ namespace CountryAPI.Controllers
         /// <summary>
         /// Get List States
         /// </summary>
-        /// <param name="countryName"></param>
-        /// <returns>Return List States</returns>
-        [HttpGet("GetStateOfCountry")]
-        public async Task<IActionResult> GetStatesOfCountry([FromQuery] string countryName)
+        /// <param name="countryName">Country name to get states of country</param>
+        /// <response code="200">successful operation</response>
+        /// <response code="404">Country name not found</response>
+        [HttpGet]
+        [Route("states/{countryName}")]
+        [SwaggerOperation("GetStatesOfCountry")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200,type: typeof(StateModel), description: "Successful operation")]
+        [SwaggerResponse(statusCode: 404,type: typeof(ErrorResponse), description: "Not Found")]
+        public async Task<IActionResult> GetStatesOfCountry([FromRoute] string countryName)
         {
             using var client = new HttpClient();
             var url = "https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/countries%2Bstates%2Bcities.json";
@@ -78,7 +93,7 @@ namespace CountryAPI.Controllers
 
             if (!states.Any())
             {
-                return NotFound(new ErrorResponse("Country Not Found"));
+                return NotFound(new ErrorResponse("Country Name Not Found"));
             }
             return Ok(states);
         }
@@ -86,11 +101,18 @@ namespace CountryAPI.Controllers
         /// <summary>
         /// List Of Cities
         /// </summary>
-        /// <param name="countryName"></param>
-        /// <param name="statesName"></param>
+        /// <param name="countryName">Country name to get citites of states</param>
+        /// <param name="statesName">States name to get citites of states</param>
         /// <returns>Return List Cities</returns>
-        [HttpGet("GetCitiesOfStates")]
-        public async Task<IActionResult> GetCitiesOfStates([FromQuery] string countryName, string statesName)
+        /// <response code="200">successful operation</response>
+        /// <response code="404">Country name not found</response>
+        [HttpGet]
+        [Route("cities/{countryName}/{stateName}")]
+        [SwaggerOperation("GetAllCountry")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200, type: typeof(CityModel), description: "Successful operation")]
+        [SwaggerResponse(statusCode: 404, type: typeof(ErrorResponse), description: "Notfound")]
+        public async Task<IActionResult> GetCitiesOfStates([FromRoute] string countryName, string stateName)
         {
             using var client = new HttpClient();
             var url = "https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/countries%2Bstates%2Bcities.json";
@@ -103,7 +125,7 @@ namespace CountryAPI.Controllers
             var cities = json.Where(obj => (string)obj["name"] == countryName)
                 .Where(obj => obj["states"] != null)
                 .SelectMany(obj => (JArray)obj["states"])
-                .Where(obj => (string)obj["name"] == statesName)
+                .Where(obj => (string)obj["name"] == stateName)
                 .Where(obj => obj["cities"] != null)
                 .SelectMany(obj => (JArray)obj["cities"])
                 .Where(obj => obj["name"] != null)
@@ -123,10 +145,17 @@ namespace CountryAPI.Controllers
         /// <summary>
         /// Currency
         /// </summary>
-        /// <param name="countryName"></param>
+        /// <param name="countryName">Country name to get currency information of country</param>
         /// <returns>Return List Currency Code, Name and Symbol</returns>
-        [HttpGet("GetCurrencyOfCountry")]
-        public async Task<IActionResult> GetCurrencyOfCountry([FromQuery] string countryName)
+        /// <response code="200">successful operation</response>
+        /// <response code="404">Country name not found</response>
+        [HttpGet]
+        [Route("currency/{countryName}")]
+        [SwaggerOperation("GetAllCountry")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200, type: typeof(CurrencyModel), description: "Successful operation")]
+        [SwaggerResponse(statusCode: 404, type: typeof(ErrorResponse), description: "Notfound")]
+        public async Task<IActionResult> GetCurrencyOfCountry([FromRoute] string countryName)
         {
             using var client = new HttpClient();
             var url = "https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/countries%2Bstates%2Bcities.json";

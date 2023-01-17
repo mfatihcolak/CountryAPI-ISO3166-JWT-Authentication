@@ -6,11 +6,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
+
+var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
 // Add services to the container.
 
@@ -27,7 +31,8 @@ services.AddSwaggerGen(options =>
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
-
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "CountryAPI", Version = "v1" });
+    options.IncludeXmlComments(xmlPath);
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
@@ -89,7 +94,10 @@ catch (Exception ex)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "CountryAPI V1");
+    });
 }
 
 app.UseAuthentication();
