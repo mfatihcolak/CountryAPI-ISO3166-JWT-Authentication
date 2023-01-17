@@ -7,6 +7,9 @@ using Microsoft.IdentityModel.Tokens;
 using CountryAPI.Models.Identity;
 using CountryAPI.Models;
 using CountryAPI.Models.ResponseModels;
+using CountryAPI.Attributes;
+using CountryAPI.Models.Country;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CountryAPI.Controllers
 {
@@ -18,6 +21,12 @@ namespace CountryAPI.Controllers
         private readonly RoleManager<AppRole> _roleManager;
         private readonly UserManager<IdentityUser> _userManager;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="roleManager"></param>
+        /// <param name="userManager"></param>
         public AuthController(
             IConfiguration configuration,
             RoleManager<AppRole> roleManager,
@@ -29,23 +38,18 @@ namespace CountryAPI.Controllers
             _userManager = userManager;
         }
 
-
-
-        [HttpGet]
-        public async Task<ActionResult<string>> TestMe([FromQuery] string username)
-        {
-            var userName = await _userManager.FindByNameAsync(username);
-            return Ok(userName);
-        }
-
         /// <summary>
-        /// User Registration
+        /// Register
         /// </summary>
-        /// <param name="user"></param>
-        /// <returns>Returns Response</returns>
-        [HttpPost("Register")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        /// <param name="user">Language code to get all countries</param>
+        /// <response code="200">successful operation</response>
+        /// <response code="404">Not supported language</response>
+        [HttpPost]
+        [Route("register")]
+        [SwaggerOperation("Register")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200, type: typeof(SuccessResponse), description: "User created successfully!")]
+        [SwaggerResponse(statusCode: 409, type: typeof(ErrorResponse), description: "User already exists!")]
         public async Task<IActionResult> Register([FromBody] AppUser user)
         {
             var dbUser = await _userManager.FindByNameAsync(user.UserName);
@@ -65,15 +69,17 @@ namespace CountryAPI.Controllers
         }
 
         /// <summary>
-        /// User Login
+        /// Login
         /// </summary>
-        /// <param name="Username">User Name</param>
-        /// <param name="Password">User Password</param>
-        /// <returns>Return Jwt Token </returns>
-        /// <exception cref="Exception">Could not find the secret in config</exception>
-        [HttpPost("Login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        /// <param name="model">Login Model</param>
+        /// <response code="200">successful operation</response>
+        /// <response code="403">Forbidden</response>
+        [HttpPost]
+        [Route("login")]
+        [SwaggerOperation("Login")]
+        [ValidateModelState]
+        [SwaggerResponse(statusCode: 200)]
+        [SwaggerResponse(statusCode: 403)]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);

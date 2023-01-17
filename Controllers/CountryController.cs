@@ -17,13 +17,13 @@ namespace CountryAPI.Controllers
     public class CountryController : ControllerBase
     {
         /// <summary>
-        /// List of All Countries With Specific Language
+        /// Get All Countries 
         /// </summary>
         /// <param name="languageCode">Language code to get all countries</param>
         /// <response code="200">successful operation</response>
         /// <response code="404">Not supported language</response>
-        [HttpGet("countries/{languageCode}")]
-        //[Route("countries/{languageCode}")]
+        [HttpGet]
+        [Route("countries/{languageCode}")]
         [SwaggerOperation("GetAllCountry")]
         [ValidateModelState]
         [SwaggerResponse(statusCode: 200,type: typeof(CountryModel), description: "Successful operation")]
@@ -63,7 +63,7 @@ namespace CountryAPI.Controllers
         }
 
         /// <summary>
-        /// Get List States
+        /// Get States
         /// </summary>
         /// <param name="countryName">Country name to get states of country</param>
         /// <response code="200">successful operation</response>
@@ -99,10 +99,10 @@ namespace CountryAPI.Controllers
         }
 
         /// <summary>
-        /// List Of Cities
+        /// Get Cities
         /// </summary>
         /// <param name="countryName">Country name to get citites of states</param>
-        /// <param name="statesName">States name to get citites of states</param>
+        /// <param name="stateName">States name to get citites of states</param>
         /// <returns>Return List Cities</returns>
         /// <response code="200">successful operation</response>
         /// <response code="404">Country name not found</response>
@@ -143,7 +143,7 @@ namespace CountryAPI.Controllers
         }
 
         /// <summary>
-        /// Currency
+        /// Get Currency
         /// </summary>
         /// <param name="countryName">Country name to get currency information of country</param>
         /// <returns>Return List Currency Code, Name and Symbol</returns>
