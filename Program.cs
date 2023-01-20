@@ -1,5 +1,8 @@
 using CountryAPI.DataAccess;
+using CountryAPI.Error;
 using CountryAPI.Models.Identity;
+using CountryAPI.Service;
+using CountryAPI.Service.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +11,9 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text;
+using Hellang.Middleware.ProblemDetails;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -33,6 +39,7 @@ services.AddSwaggerGen(options =>
     });
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "CountryAPI", Version = "v1" });
     options.IncludeXmlComments(xmlPath);
+    options.EnableAnnotations();
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
@@ -57,6 +64,11 @@ services.AddAuthentication(options =>
 });
 
 services.AddDbContext<MyDbContext>();
+services.AddHttpClient();
+services.AddTransient<CountryService>();
+services.AddScoped<ICountryService, CountryService>();
+ProblemDetailsExtensions.AddProblemDetails(services);
+
 
 services.AddIdentity<IdentityUser, AppRole>(options =>
 {
@@ -99,6 +111,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "CountryAPI V1");
     });
 }
+
+app.UseProblemDetails();
 
 app.UseAuthentication();
 

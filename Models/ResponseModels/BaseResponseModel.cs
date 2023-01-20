@@ -8,8 +8,6 @@
         /// <summary>
         /// Base Response Model
         /// </summary>
-        /// <param name="status">Response</param>
-        /// <param name="message">Message</param>
         public BaseResponseModel(string status, string message)
         {
             Status = status;

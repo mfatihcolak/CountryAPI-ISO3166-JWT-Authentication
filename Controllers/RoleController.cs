@@ -117,22 +117,27 @@ namespace CountryAPI.Controllers
         /// <param name="roleName">Delete role with role name</param>
         /// <response code="200">Successfully deleted the role</response>
         /// <response code="404">Role Does Not Exist</response>
-        [HttpGet]
+        /// <response code="default">Problem Details (RFC 7807) Response.</response>
+        [HttpDelete]
         [Route("delete/{roleName}")]
         [SwaggerOperation("DeleteRole")]
         [ValidateModelState]
         [SwaggerResponse(statusCode: 200, type: typeof(SuccessResponse), description: "Successfully deleted the role")]
         [SwaggerResponse(statusCode: 404, type: typeof(ErrorResponse), description: "Role Does Not Exist")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> DeleteRole([FromRoute] string roleName)
         {
             var role = await _roleManager.FindByNameAsync(roleName);
             if (role is null)
             {
-                return NotFound(new ErrorResponse("Role Does Not Exist"));
+                //return NotFound(new ErrorResponse("Role Does Not Exist"));
+                return NotFound();
             }
 
             await _roleManager.DeleteAsync(role);
-            return Ok(new SuccessResponse("Successfully deleted the role"));
+            return Ok();
         }
     }
 }

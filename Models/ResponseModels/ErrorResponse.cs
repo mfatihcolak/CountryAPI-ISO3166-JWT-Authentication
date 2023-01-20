@@ -5,7 +5,6 @@
         /// <summary>
         /// Error Response
         /// </summary>
-        /// <param name="message"></param>
         public ErrorResponse(string message) : base("Error", message)
         {
 
